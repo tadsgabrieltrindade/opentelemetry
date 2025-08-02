@@ -1,0 +1,46 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+        endpoint: 0.0.0.0:4318
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      cpu:
+      memory:
+      disk:
+      filesystem:
+      load:
+      network:
+processors:
+  batch:
+exporters:
+  logging:
+    verbosity: detailed
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+  loki:
+    endpoint: "http://loki:3100/loki/api/v1/push"
+    retry_on_failure:
+      enabled: true
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, otlp/jaeger]
+    
+    metrics:
+      receivers: [otlp, hostmetrics]
+      processors: [batch]
+      exporters: [logging, prometheus]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [loki, logging]

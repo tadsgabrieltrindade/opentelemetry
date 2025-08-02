@@ -59,6 +59,7 @@ services:
       - "8889:8889" # Prometheus metrics endpoint
     depends_on:
       - jaeger
+      - loki
 
   jaeger:
     image: jaegertracing/all-in-one:1.70.0
@@ -78,6 +79,28 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
       - otel-collector
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8089:8080"
+    volumes: 
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    deploy:
+      restart_policy:
+        condition: always
+    depends_on:
+      - otel-collector
+  
+  loki:
+    image: grafana/loki:3.1.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
   
   grafana:
     image: grafana/grafana:12.1.0
