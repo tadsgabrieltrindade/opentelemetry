@@ -89,5 +89,18 @@ services:
     depends_on:
       - prometheus
 
+  pg-exporter-grafana:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: pg-exporter-grafana
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://user:password@database:5432/userdb?sslmode=disable
+    depends_on:
+      - database
+
 volumes:
   grafana-data:
+
+
+  
